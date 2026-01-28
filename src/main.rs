@@ -1,6 +1,5 @@
-use macroquad::prelude::*;
-use crate::constant::{MAP_COLS, MAP_ROWS, T_SIZE};
 use crate::game::Game;
+use macroquad::prelude::*;
 
 mod constant;
 mod game;
