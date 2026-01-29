@@ -72,21 +72,22 @@ impl Game {
             if is_key_down(KeyCode::Right){
                 px += 1;
             }
-            self.player_timer = self.player_delay;
-            if let Some(row) = self.map.get(py) {
-                if let Some(tile) = row.get(px) {
-                    if *tile == Tile::Floor || *tile == Tile::Exit{
-                        self.px = px;
-                        self.py = py;
-                    }
-                    if *tile == Tile::Exit {
-                        self.state = GameState::GameOver
+            if !(self.px == px && self.py == py) {
+                if let Some(row) = self.map.get(py) {
+                    if let Some(tile) = row.get(px) {
+                        if *tile == Tile::Floor || *tile == Tile::Exit{
+                            self.px = px;
+                            self.py = py;
+                            self.player_timer = self.player_delay;
+                        }
+                        if *tile == Tile::Exit {
+                            self.state = GameState::GameOver
+                        }
                     }
                 }
             }
+
         }
-
-
     }
 
     pub fn draw(&self) {
