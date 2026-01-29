@@ -10,11 +10,11 @@ pub fn draw_wall(x: f32, y: f32, size: f32) {
     )
 }
 
-pub fn draw_exit(x: usize, y: usize,) {
-    draw_rectangle(
-        x as f32 * T_SIZE,
-        y as f32 * T_SIZE,
-        T_SIZE, T_SIZE,
+pub fn draw_exit(x: f32, y: f32, r: f32) {
+    draw_circle(
+        x + r,
+        y + r,
+        r,
         BLUE
     )
 }

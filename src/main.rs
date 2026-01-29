@@ -26,9 +26,21 @@ async fn main() {
                 }
             },
             GameState::Playing => {
+                game.update(get_frame_time());
                 game.draw();
             },
-            GameState::GameOver => {},
+            GameState::GameOver => {
+                game.draw();
+                draw_rectangle(
+                    0., 0., screen_width(), screen_height(), Color::new(0., 0., 0., 0.5)
+                );
+
+                draw_text("You Win!", screen_width() / 2. - 100., screen_height() / 2. - 100., 30., BLACK);
+                draw_text("Press enter to restart!", screen_width() / 2. - 100., screen_height() / 2. + 100., 30., BLACK);
+                if is_key_pressed(KeyCode::Enter) {
+                    game.restart();
+                }
+            },
         }
         next_frame().await;
     }
