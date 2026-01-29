@@ -1,16 +1,31 @@
+use crate::constant::MAP_SIZE;
+use crate::helpers::draw_helpers::{draw_ava, draw_exit, draw_wall};
+use crate::helpers::pathfinding::find_path;
 use macroquad::input::is_key_down;
-use macroquad::math::vec2;
-use macroquad::prelude::{draw_texture, draw_texture_ex, load_texture, render_target, Camera2D, DrawTextureParams, KeyCode, Rect, Texture2D, WHITE};
+use macroquad::prelude::{KeyCode, Texture2D};
 use macroquad::window::{screen_height, screen_width};
-use crate::constant::{MAP_SIZE, T_SIZE};
-use crate::GameState;
-use crate::helpers::draw_helpers::{draw_exit, draw_wall};
+
+pub enum GameResult {
+    Win,
+    Lose,
+}
+pub enum GameState {
+    Menu,
+    Playing,
+    GameOver(GameResult),
+}
 
 #[derive(Copy, Clone, PartialEq)]
 pub enum Tile {
     Floor,
     Wall,
     Exit,
+}
+
+struct Enemy {
+    x: usize,
+    y: usize,
+    timer: f32
 }
 
 pub struct Game {
@@ -20,11 +35,13 @@ pub struct Game {
     px: usize,
     py: usize,
     player_timer: f32,
-    player_delay: f32
+    player_delay: f32,
+    enemy_ava: Texture2D,
+    enemies: Vec<Enemy>
 }
 
 impl Game {
-    pub fn new(player_ava: Texture2D) -> Self {
+    pub fn new(player_ava: Texture2D, enemy_ava: Texture2D) -> Self {
         let mut map : [[Tile; MAP_SIZE]; MAP_SIZE] = [[Tile::Floor; MAP_SIZE]; MAP_SIZE];
         for i in 0..MAP_SIZE {
             map[i][MAP_SIZE - 1] = Tile::Wall;
@@ -37,6 +54,26 @@ impl Game {
         }
 
         map[MAP_SIZE - 2][MAP_SIZE - 2] = Tile::Exit;
+        map[15][15] = Tile::Wall;
+        map[9][10] = Tile::Wall;
+        let mut enemies = vec![];
+        enemies.push(Enemy {
+            x: 12,
+            y: 12,
+            timer: 0.
+        });
+
+        enemies.push(Enemy {
+            x: 5,
+            y: 7,
+            timer: 0.
+        });
+
+        enemies.push(Enemy {
+            x: 9,
+            y: 13,
+            timer: 0.
+        });
         Self {
             map,
             state: GameState::Menu,
@@ -44,7 +81,9 @@ impl Game {
             px: 2,
             py: 10,
             player_timer: 0.,
-            player_delay: 0.15
+            player_delay: 0.15,
+            enemy_ava,
+            enemies
         }
     }
 
@@ -58,6 +97,12 @@ impl Game {
         self.player_timer -= delta_time;
         let mut py = self.py;
         let mut px = self.px;
+
+        let enemies_pos: Vec<_> = self
+            .enemies
+            .iter()
+            .map(|m| (m.x, m.y))
+            .collect();
 
         if self.player_timer <= 0. {
             if is_key_down(KeyCode::Up){
@@ -81,13 +126,36 @@ impl Game {
                             self.player_timer = self.player_delay;
                         }
                         if *tile == Tile::Exit {
-                            self.state = GameState::GameOver
+                            self.state = GameState::GameOver(GameResult::Lose);
+                            return;
+                        }
+                        if enemies_pos.contains(&(px, py)) {
+                            self.state = GameState::GameOver(GameResult::Lose);
+                            return;
                         }
                     }
                 }
             }
-
         }
+
+
+        for i in 0..self.enemies.len() {
+            self.enemies[i].timer -= delta_time;
+            if self.enemies[i].timer <= 0. {
+                self.enemies[i].timer = 1.;
+                let path = find_path(&self.map, (self.enemies[i].x, self.enemies[i].y), (self.px, self.py));
+                if path.len() > 0 && !enemies_pos.contains(&(path[0])) {
+                    self.enemies[i].x = path[0].0;
+                    self.enemies[i].y = path[0].1;
+                    if (self.enemies[i].x, self.enemies[i].y) == (self.px, self.py) {
+                        self.state = GameState::GameOver(GameResult::Win);
+                        return;
+                    }
+                }
+            }
+        }
+
+
     }
 
     pub fn draw(&self) {
@@ -106,11 +174,11 @@ impl Game {
             }
         }
 
-        draw_texture_ex(&self.player_ava, offset_x + (self.px as f32 * t_size), offset_y + (self.py as f32 * t_size),
-            WHITE, DrawTextureParams {
-                dest_size: Some(vec2(t_size, t_size)),
-                ..Default::default()
-            }
-        );
+        for enemy in &self.enemies {
+            draw_ava(&self.enemy_ava, offset_x + (enemy.x as f32 * t_size), offset_y + (enemy.y as f32 * t_size), t_size );
+
+        }
+        draw_ava(&self.player_ava, offset_x + (self.px as f32 * t_size), offset_y + (self.py as f32 * t_size), t_size );
+
     }
 }

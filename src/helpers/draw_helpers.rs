@@ -19,6 +19,15 @@ pub fn draw_exit(x: f32, y: f32, r: f32) {
     )
 }
 
+pub fn draw_ava(ava: &Texture2D, x: f32, y: f32, t_size: f32) {
+    draw_texture_ex(ava, x, y,
+                    WHITE, DrawTextureParams {
+            dest_size: Some(vec2(t_size, t_size)),
+            ..Default::default()
+        }
+    );
+}
+
 
 pub fn to_screen(x: usize, y: usize) -> (f32, f32) {
     (
