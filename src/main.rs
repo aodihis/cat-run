@@ -12,7 +12,8 @@ enum GameState {
 }
 #[macroquad::main("Cat")]
 async fn main() {
-    let mut game = Game::new();
+    let player_ava: Texture2D = load_texture("assets/cat.png").await.unwrap();
+    let mut game = Game::new(player_ava);
     loop {
         // set_camera(&game.cam);
         clear_background(WHITE);

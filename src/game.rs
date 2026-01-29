@@ -1,4 +1,5 @@
-use macroquad::prelude::{render_target, Camera2D, Rect};
+use macroquad::math::vec2;
+use macroquad::prelude::{draw_texture, draw_texture_ex, load_texture, render_target, Camera2D, DrawTextureParams, Rect, Texture2D, WHITE};
 use macroquad::window::{screen_height, screen_width};
 use crate::constant::{MAP_SIZE, T_SIZE};
 use crate::GameState;
@@ -11,16 +12,17 @@ pub enum Tile {
     Exit,
 }
 
-pub type Coord = (i32, i32);
 pub struct Game {
     pub state: GameState,
     map: [[Tile; MAP_SIZE]; MAP_SIZE],
+    player_ava: Texture2D,
+    px: usize,
+    py: usize,
 }
 
 impl Game {
-    pub fn new() -> Self {
+    pub fn new(player_ava: Texture2D) -> Self {
         let mut map : [[Tile; MAP_SIZE]; MAP_SIZE] = [[Tile::Floor; MAP_SIZE]; MAP_SIZE];
-
         for i in 0..MAP_SIZE {
             map[i][MAP_SIZE - 1] = Tile::Wall;
             map[i][0] = Tile::Wall;
@@ -35,6 +37,9 @@ impl Game {
         Self {
             map,
             state: GameState::Menu,
+            player_ava,
+            px: 2,
+            py: 10,
         }
     }
 
@@ -55,5 +60,11 @@ impl Game {
                 }
             }
         }
+        draw_texture_ex(&self.player_ava, offset_x + (self.px as f32 * t_size), offset_y + (self.py as f32 * t_size),
+            WHITE, DrawTextureParams {
+                dest_size: Some(vec2(t_size, t_size)),
+                ..Default::default()
+            }
+        );
     }
 }
