@@ -6,7 +6,7 @@ use crate::game::Tile;
 pub fn find_path(map: &[[Tile; MAP_SIZE]; MAP_SIZE], start: (usize, usize), end: (usize, usize)) -> Vec<(usize, usize)> {
 
     let mut vis = [[i32::MAX;MAP_SIZE];MAP_SIZE];
-    vis[start.0][start.1] = 0;
+    vis[start.1][start.0] = 0;
     let mut prev = [[None;MAP_SIZE];MAP_SIZE];
 
     let directions = [(0, 1), (0, -1), (1, 0), (-1, 0)];
@@ -19,7 +19,7 @@ pub fn find_path(map: &[[Tile; MAP_SIZE]; MAP_SIZE], start: (usize, usize), end:
             let mut current = end;
             while current != start {
                 path.push(current);
-                if let Some(c) = prev[current.0][current.1] {
+                if let Some(c) = prev[current.1][current.0] {
                     current = c;
                 } else {
                     return vec![];
@@ -31,12 +31,12 @@ pub fn find_path(map: &[[Tile; MAP_SIZE]; MAP_SIZE], start: (usize, usize), end:
         for (dx, dy) in directions.iter() {
             let nx = x as i32 + dx;
             let ny = y as i32 + dy;
-            if nx >= 0 && nx < map.len() as i32 && ny >= 0 && ny < map[0].len() as i32
-                && map[nx as usize][ny as usize] == Tile::Floor
-                && vis[nx as usize][ny as usize] > cost + 1 {
-                vis[nx as usize][ny as usize] = cost + 1;
+            if nx >= 0 && nx < MAP_SIZE as i32 && ny >= 0 && ny < MAP_SIZE as i32
+                && map[ny as usize][nx as usize] == Tile::Floor
+                && vis[ny as usize][nx as usize] > cost + 1 {
+                vis[ny as usize][nx as usize] = cost + 1;
                 heap.push(Reverse((cost + 1, nx as usize, ny as usize)));
-                prev[nx as usize][ny as usize] = Some((x,y));
+                prev[ny as usize][nx as usize] = Some((x,y));
             }
         }
     }

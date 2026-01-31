@@ -15,7 +15,7 @@ pub enum GameState {
     GameOver(GameResult),
 }
 
-#[derive(Copy, Clone, PartialEq)]
+#[derive(Copy, Clone, PartialEq, Debug)]
 pub enum Tile {
     Floor,
     Wall,
@@ -42,38 +42,9 @@ pub struct Game {
 
 impl Game {
     pub fn new(player_ava: Texture2D, enemy_ava: Texture2D) -> Self {
-        let mut map : [[Tile; MAP_SIZE]; MAP_SIZE] = [[Tile::Floor; MAP_SIZE]; MAP_SIZE];
-        for i in 0..MAP_SIZE {
-            map[i][MAP_SIZE - 1] = Tile::Wall;
-            map[i][0] = Tile::Wall;
-        }
 
-        for i in 0..MAP_SIZE {
-            map[MAP_SIZE - 1][i] = Tile::Wall;
-            map[0][i] = Tile::Wall;
-        }
-
-        map[MAP_SIZE - 2][MAP_SIZE - 2] = Tile::Exit;
-        map[15][15] = Tile::Wall;
-        map[9][10] = Tile::Wall;
-        let mut enemies = vec![];
-        enemies.push(Enemy {
-            x: 12,
-            y: 12,
-            timer: 0.
-        });
-
-        enemies.push(Enemy {
-            x: 5,
-            y: 7,
-            timer: 0.
-        });
-
-        enemies.push(Enemy {
-            x: 9,
-            y: 13,
-            timer: 0.
-        });
+        let map = Self::setup_map();
+        let enemies = Self::setup_enemies();
         Self {
             map,
             state: GameState::Menu,
@@ -91,6 +62,9 @@ impl Game {
         self.px = 2;
         self.py = 10;
         self.state = GameState::Menu;
+        self.enemies = Self::setup_enemies();
+        self.player_timer = 0.;
+        self.map = Self::setup_map();
     }
 
     pub fn update(&mut self, delta_time: f32) {
@@ -98,7 +72,7 @@ impl Game {
         let mut py = self.py;
         let mut px = self.px;
 
-        let enemies_pos: Vec<_> = self
+        let mut enemies_pos: Vec<_> = self
             .enemies
             .iter()
             .map(|m| (m.x, m.y))
@@ -142,11 +116,12 @@ impl Game {
         for i in 0..self.enemies.len() {
             self.enemies[i].timer -= delta_time;
             if self.enemies[i].timer <= 0. {
-                self.enemies[i].timer = 1.;
+                self.enemies[i].timer = 0.30;
                 let path = find_path(&self.map, (self.enemies[i].x, self.enemies[i].y), (self.px, self.py));
                 if path.len() > 0 && !enemies_pos.contains(&(path[0])) {
                     self.enemies[i].x = path[0].0;
                     self.enemies[i].y = path[0].1;
+                    enemies_pos[i] = (self.enemies[i].x, self.enemies[i].y);
                     if (self.enemies[i].x, self.enemies[i].y) == (self.px, self.py) {
                         self.state = GameState::GameOver(GameResult::Win);
                         return;
@@ -180,5 +155,44 @@ impl Game {
         }
         draw_ava(&self.player_ava, offset_x + (self.px as f32 * t_size), offset_y + (self.py as f32 * t_size), t_size );
 
+    }
+
+    fn setup_map() -> [[Tile; MAP_SIZE]; MAP_SIZE]{
+        let mut map : [[Tile; MAP_SIZE]; MAP_SIZE] = [[Tile::Floor; MAP_SIZE]; MAP_SIZE];
+        for i in 0..MAP_SIZE {
+            map[i][MAP_SIZE - 1] = Tile::Wall;
+            map[i][0] = Tile::Wall;
+        }
+
+        for i in 0..MAP_SIZE {
+            map[MAP_SIZE - 1][i] = Tile::Wall;
+            map[0][i] = Tile::Wall;
+        }
+
+        map[MAP_SIZE - 2][MAP_SIZE - 2] = Tile::Exit;
+        map[15][15] = Tile::Wall;
+        map[9][10] = Tile::Wall;
+        map
+    }
+    fn setup_enemies() -> Vec<Enemy> {
+        let mut enemies = vec![];
+        enemies.push(Enemy {
+            x: 12,
+            y: 12,
+            timer: 0.
+        });
+
+        enemies.push(Enemy {
+            x: 5,
+            y: 7,
+            timer: 0.
+        });
+
+        enemies.push(Enemy {
+            x: 9,
+            y: 13,
+            timer: 0.
+        });
+        enemies
     }
 }
