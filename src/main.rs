@@ -6,7 +6,7 @@ mod game;
 mod helpers;
 
 
-#[macroquad::main("Cat")]
+#[macroquad::main("Cat Run")]
 async fn main() {
     let player_ava = load_texture("assets/cat.png").await.unwrap_or_else(|err| {
         eprintln!("ERROR loading player texture: {err}");
